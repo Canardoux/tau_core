@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../../../../third_party/devtools-frontend/src/front_end/third_party/acorn/acorn.ts"],
+  "sourcesContent": ["// Copyright (c) 2020 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\nimport * as acorn from './package/dist/acorn.mjs';\n\nimport type * as ESTree from './estree-legacy.js';\nexport {ESTree};\n\nexport { type Comment, defaultOptions, getLineInfo, isNewLine, lineBreak, lineBreakG, Node, SourceLocation, Token, tokTypes, tokContexts} from './package/dist/acorn.mjs';\n\nexport const Parser = acorn.Parser;\nexport const tokenizer = acorn.Parser.tokenizer.bind(acorn.Parser);\nexport const parse = acorn.Parser.parse.bind(acorn.Parser);\n"],
+  "mappings": ";AAIA,YAAY,WAAW;AAGvB;AAEA,SAAuB,gBAAgB,aAAa,WAAW,WAAW,YAAY,MAAM,gBAAgB,OAAO,UAAU,mBAAkB;AAExI,aAAM,SAAS,MAAM;AACrB,aAAM,YAAY,MAAM,OAAO,UAAU,KAAK,MAAM,MAAM;AAC1D,aAAM,QAAQ,MAAM,OAAO,MAAM,KAAK,MAAM,MAAM;",
+  "names": []
+}

@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../../../../../../third_party/devtools-frontend/src/front_end/ui/legacy/components/inline_editor/InlineEditorUtils.ts"],
+  "sourcesContent": ["// Copyright 2021 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\nexport class ValueChangedEvent extends Event {\n  static readonly eventName = 'valuechanged';\n  data: {value: string};\n\n  constructor(value: string) {\n    super(ValueChangedEvent.eventName, {});\n    this.data = {value};\n  }\n}\n"],
+  "mappings": ";AAIO,aAAM,0BAA0B,MAAM;AAAA,EAC3C,OAAgB,YAAY;AAAA,EAC5B;AAAA,EAEA,YAAY,OAAe;AACzB,UAAM,kBAAkB,WAAW,CAAC,CAAC;AACrC,SAAK,OAAO,EAAC,MAAK;AAAA,EACpB;AACF;",
+  "names": []
+}

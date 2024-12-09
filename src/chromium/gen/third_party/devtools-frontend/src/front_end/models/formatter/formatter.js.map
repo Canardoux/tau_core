@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../../../../third_party/devtools-frontend/src/front_end/models/formatter/formatter.ts"],
+  "sourcesContent": ["// Copyright 2019 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\nimport * as FormatterWorkerPool from './FormatterWorkerPool.js';\nimport * as ScriptFormatter from './ScriptFormatter.js';\n\nexport {FormatterWorkerPool, ScriptFormatter};\n"],
+  "mappings": ";AAIA,YAAY,yBAAyB;AACrC,YAAY,qBAAqB;AAEjC,SAAQ,qBAAqB;",
+  "names": []
+}

@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../../../../third_party/devtools-frontend/src/front_end/core/sdk/ProfileTreeModel.ts"],
+  "sourcesContent": ["// Copyright 2016 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\nimport * as CPUProfile from '../../models/cpu_profile/cpu_profile.js';\n\n// This is a temporary approach to prevent Profiler panel layout tests\n// failures. These tests depend on this class being defined under SDK.\n// However in order to use this library in the reconciled performance\n// panel, we have extracted it out to models/. Given that the profiler\n// panel is deprecated and it (and its tests) will be removed soon,\n// these tests are not ported to unit tests, instead we use this\n// workaround to prevent failures. Once the panel is gone, this file can\n// be removed.\n// TODO(crbug.com/1354548): remove this file once the Profiler Panel\n// and its tests are removed.\nexport class ProfileTreeModel extends CPUProfile.ProfileTreeModel.ProfileTreeModel {}\n"],
+  "mappings": ";AAIA,YAAY,gBAAgB;AAYrB,aAAM,yBAAyB,WAAW,iBAAiB,iBAAiB;AAAC;",
+  "names": []
+}

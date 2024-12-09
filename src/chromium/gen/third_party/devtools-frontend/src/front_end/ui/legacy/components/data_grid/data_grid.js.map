@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../../../../../../third_party/devtools-frontend/src/front_end/ui/legacy/components/data_grid/data_grid.ts"],
+  "sourcesContent": ["// Copyright 2019 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\nimport './DataGrid.js';\nimport './ViewportDataGrid.js';\nimport './SortableDataGrid.js';\nimport './ShowMoreDataGridNode.js';\n\nimport * as DataGrid from './DataGrid.js';\nimport * as DataGridWithPreview from './DataGridWithPreview.js';\nimport * as ShowMoreDataGridNode from './ShowMoreDataGridNode.js';\nimport * as SortableDataGrid from './SortableDataGrid.js';\nimport * as ViewportDataGrid from './ViewportDataGrid.js';\n\nexport {DataGrid, DataGridWithPreview, ShowMoreDataGridNode, SortableDataGrid, ViewportDataGrid};\n"],
+  "mappings": ";AAIA,OAAO;AACP,OAAO;AACP,OAAO;AACP,OAAO;AAEP,YAAY,cAAc;AAC1B,YAAY,yBAAyB;AACrC,YAAY,0BAA0B;AACtC,YAAY,sBAAsB;AAClC,YAAY,sBAAsB;AAElC,SAAQ,UAAU,qBAAqB,sBAAsB,kBAAkB;",
+  "names": []
+}

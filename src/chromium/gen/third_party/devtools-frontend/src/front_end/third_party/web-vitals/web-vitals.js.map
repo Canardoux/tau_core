@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../../../../third_party/devtools-frontend/src/front_end/third_party/web-vitals/web-vitals.ts"],
+  "sourcesContent": ["export * from './package/dist/modules/index.js';\nexport * as Attribution from './package/dist/modules/attribution/index.js';\nexport {onBFCacheRestore} from './package/dist/modules/lib/bfcache.js';\nexport {attributeINP} from './package/dist/modules/attribution/onINP.js';\nexport {entryPreProcessingCallbacks} from './package/dist/modules/lib/interactions.js';\n"],
+  "mappings": ";AAAA,cAAc;AACd,YAAY,iBAAiB;AAC7B,SAAQ,wBAAuB;AAC/B,SAAQ,oBAAmB;AAC3B,SAAQ,mCAAkC;",
+  "names": []
+}

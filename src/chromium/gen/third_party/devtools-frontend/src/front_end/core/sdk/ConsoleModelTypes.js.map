@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../../../../third_party/devtools-frontend/src/front_end/core/sdk/ConsoleModelTypes.ts"],
+  "sourcesContent": ["// Copyright 2020 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\n// We need these enums here as enum values of enums defined in closure land\n// are typed as string, and hence provide for weaker type-checking.\n\nexport enum FrontendMessageType {\n  /* eslint-disable @typescript-eslint/naming-convention -- Used by web_tests. */\n  Result = 'result',\n  Command = 'command',\n  System = 'system',\n  QueryObjectResult = 'queryObjectResult',\n  /* eslint-enable @typescript-eslint/naming-convention */\n}\n"],
+  "mappings": ";AAOO,WAAK,sBAAL,kBAAKA,yBAAL;AAEL,EAAAA,qBAAA,YAAS;AACT,EAAAA,qBAAA,aAAU;AACV,EAAAA,qBAAA,YAAS;AACT,EAAAA,qBAAA,uBAAoB;AALV,SAAAA;AAAA,GAAA;",
+  "names": ["FrontendMessageType"]
+}

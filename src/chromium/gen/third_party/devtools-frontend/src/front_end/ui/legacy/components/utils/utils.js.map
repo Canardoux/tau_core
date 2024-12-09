@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../../../../../../third_party/devtools-frontend/src/front_end/ui/legacy/components/utils/utils.ts"],
+  "sourcesContent": ["// Copyright 2019 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\nimport * as ImagePreview from './ImagePreview.js';\nimport * as JSPresentationUtils from './JSPresentationUtils.js';\nimport * as Linkifier from './Linkifier.js';\nimport * as Reload from './Reload.js';\nimport * as TargetDetachedDialog from './TargetDetachedDialog.js';\n\nexport {\n  ImagePreview,\n  JSPresentationUtils,\n  Linkifier,\n  Reload,\n  TargetDetachedDialog,\n};\n"],
+  "mappings": ";AAIA,YAAY,kBAAkB;AAC9B,YAAY,yBAAyB;AACrC,YAAY,eAAe;AAC3B,YAAY,YAAY;AACxB,YAAY,0BAA0B;AAEtC;AAAA,EACE;AAAA,EACA;AAAA,EACA;AAAA,EACA;AAAA,EACA;AAAA;",
+  "names": []
+}

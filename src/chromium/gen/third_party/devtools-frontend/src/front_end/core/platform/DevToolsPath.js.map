@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../../../../third_party/devtools-frontend/src/front_end/core/platform/DevToolsPath.ts"],
+  "sourcesContent": ["// Copyright 2021 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\nimport type {Brand} from './Brand.js';\n\n/**\n * File paths in DevTools that are represented as URLs\n * @example\n * \u201Cfile:///Hello%20World/file/js\u201D\n */\nexport type UrlString = Brand<string, 'UrlString'>;\nexport const EmptyUrlString = '' as UrlString;\n\n/**\n * File paths in DevTools that are represented as unencoded absolute\n * or relative paths\n * @example\n * \u201C/Hello World/file.js\u201D\n */\nexport type RawPathString = Brand<string, 'RawPathString'>;\nexport const EmptyRawPathString = '' as RawPathString;\n\n/**\n * File paths in DevTools that are represented as encoded paths\n * @example\n * \u201C/Hello%20World/file.js\u201D\n */\nexport type EncodedPathString = Brand<string, 'EncodedPathString'>;\nexport const EmptyEncodedPathString = '' as EncodedPathString;\n"],
+  "mappings": ";AAYO,aAAM,iBAAiB;AASvB,aAAM,qBAAqB;AAQ3B,aAAM,yBAAyB;",
+  "names": []
+}

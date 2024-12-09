@@ -1,0 +1,695 @@
+"use strict";
+import * as Host from "../../../core/host/host.js";
+import * as Platform from "../../../core/platform/platform.js";
+import * as UI from "../../legacy/legacy.js";
+import * as LitHtml from "../../lit-html/lit-html.js";
+import * as VisualLogging from "../../visual_logging/visual_logging.js";
+import * as Coordinator from "../render_coordinator/render_coordinator.js";
+import dataGridStyles from "./dataGrid.css.js";
+import {
+  BodyCellFocusedEvent,
+  ColumnHeaderClickEvent,
+  ContextMenuHeaderResetClickEvent,
+  RowMouseEnterEvent,
+  RowMouseLeaveEvent
+} from "./DataGridEvents.js";
+const coordinator = Coordinator.RenderCoordinator.RenderCoordinator.instance();
+import { addColumnVisibilityCheckboxes, addSortableColumnItems } from "./DataGridContextMenuUtils.js";
+import {
+  calculateColumnWidthPercentageFromWeighting,
+  calculateFirstFocusableCell,
+  getCellTitleFromCellContent,
+  getRowEntryForColumnId,
+  handleArrowKeyNavigation,
+  renderCellValue,
+  SortDirection
+} from "./DataGridUtils.js";
+import * as i18n from "../../../core/i18n/i18n.js";
+const { html, Directives: { ifDefined, classMap, styleMap, repeat } } = LitHtml;
+const UIStrings = {
+  /**
+   *@description A context menu item in the Data Grid of a data grid
+   */
+  sortBy: "Sort By",
+  /**
+   *@description A context menu item in data grids to reset the columns to their default weight
+   */
+  resetColumns: "Reset Columns",
+  /**
+   *@description A context menu item in data grids to list header options.
+   */
+  headerOptions: "Header Options",
+  /**
+   *@description Text for screen reader to announce when focusing on a sortable column in data grid.
+   *@example {ascending} PH1
+   */
+  enterToSort: "Column sort state: {PH1}. Press enter to apply sorting filter",
+  /**
+   *@description The current sort state of a column in data grid
+   */
+  sortAsc: "ascending",
+  /**
+   *@description The current sort state of a column in data grid
+   */
+  sortDesc: "descending",
+  /**
+   *@description The current sort state of a column in data grid
+   */
+  sortNone: "none"
+};
+const str_ = i18n.i18n.registerUIStrings("ui/components/data_grid/DataGrid.ts", UIStrings);
+const i18nString = i18n.i18n.getLocalizedString.bind(void 0, str_);
+var UserScrollState = /* @__PURE__ */ ((UserScrollState2) => {
+  UserScrollState2["NOT_SCROLLED"] = "NOT_SCROLLED";
+  UserScrollState2["MANUAL_SCROLL_NOT_BOTTOM"] = "MANUAL_SCROLL_NOT_BOTTOM";
+  UserScrollState2["SCROLLED_TO_BOTTOM"] = "SCROLLED_TO_BOTTOM";
+  return UserScrollState2;
+})(UserScrollState || {});
+const KEYS_TREATED_AS_CLICKS = /* @__PURE__ */ new Set([" ", "Enter"]);
+const ROW_HEIGHT_PIXELS = 20;
+export class DataGrid extends HTMLElement {
+  #shadow = this.attachShadow({ mode: "open" });
+  #columns = [];
+  #rows = [];
+  #sortState = null;
+  #isRendering = false;
+  #userScrollState = "NOT_SCROLLED" /* NOT_SCROLLED */;
+  #contextMenus = void 0;
+  #label = void 0;
+  #paddingRowsCount = 10;
+  #showScrollbar = false;
+  #striped = false;
+  #autoScrollToBottom = true;
+  #currentResize = null;
+  // Because we only render a subset of rows, we need a way to look up the
+  // actual row index from the original dataset. We could use this.rows[index]
+  // but that's O(n) and will slow as the dataset grows. A weakmap makes the
+  // lookup constant.
+  #rowIndexMap = /* @__PURE__ */ new WeakMap();
+  #resizeObserver = new ResizeObserver(() => {
+    void this.#alignScrollHandlers();
+  });
+  // Thie have to be bound as they are put onto the global document, not onto
+  // this element, so LitHtml does not bind them for us.
+  #boundOnResizePointerMove = this.#onResizePointerMove.bind(this);
+  /**
+   * Following guidance from
+   * https://www.w3.org/TR/wai-aria-practices/examples/grid/dataGrids.html, we
+   * allow a single cell inside the table to be focusable, such that when a user
+   * tabs in they select that cell. IMPORTANT: if the data-grid has sortable
+   * columns, the user has to be able to navigate to the headers to toggle the
+   * sort. [0,0] is considered the first cell INCLUDING the column header
+   * Therefore if a user is on the first header cell, the position is considered [0, 0],
+   * and if a user is on the first body cell, the position is considered [0, 1].
+   *
+   * We set the selectable cell to the first tbody value by default, but then on the
+   * first render if any of the columns are sortable we'll set the active cell
+   * to [0, 0].
+   */
+  #cellToFocusIfUserTabsIn = [0, 1];
+  #cellUserHasFocused = null;
+  #hasRenderedAtLeastOnce = false;
+  #userHasFocusInDataGrid = false;
+  #scheduleRender = false;
+  connectedCallback() {
+    this.#shadow.adoptedStyleSheets = [dataGridStyles];
+    this.style.setProperty("--table-row-height", `${ROW_HEIGHT_PIXELS}px`);
+    void this.#render();
+  }
+  get data() {
+    return {
+      columns: this.#columns,
+      rows: this.#rows,
+      activeSort: this.#sortState,
+      contextMenus: this.#contextMenus,
+      autoScrollToBottom: this.#autoScrollToBottom,
+      label: this.#label,
+      paddingRowsCount: this.#paddingRowsCount,
+      showScrollbar: this.#showScrollbar,
+      striped: this.#striped
+    };
+  }
+  set data(data) {
+    this.#columns = data.columns;
+    this.#rows = data.rows;
+    this.#rows.forEach((row, index) => {
+      this.#rowIndexMap.set(row, index);
+    });
+    this.#sortState = data.activeSort;
+    this.#contextMenus = data.contextMenus;
+    this.#label = data.label;
+    this.#showScrollbar = data.showScrollbar;
+    this.#striped = data.striped;
+    if (typeof data.autoScrollToBottom === "boolean") {
+      this.#autoScrollToBottom = data.autoScrollToBottom;
+    }
+    if (!this.#hasRenderedAtLeastOnce) {
+      this.#cellToFocusIfUserTabsIn = calculateFirstFocusableCell({ columns: this.#columns, rows: this.#rows });
+    }
+    if (data.paddingRowsCount !== void 0) {
+      this.#paddingRowsCount = data.paddingRowsCount;
+    }
+    if (this.#hasRenderedAtLeastOnce && this.#userHasCellFocused()) {
+      const [selectedColIndex, selectedRowIndex] = this.#tabbableCell();
+      const columnOutOfBounds = selectedColIndex > this.#columns.length;
+      const rowOutOfBounds = selectedRowIndex > this.#rows.length;
+      if (columnOutOfBounds || rowOutOfBounds) {
+        this.#cellUserHasFocused = [
+          columnOutOfBounds ? this.#columns.length : selectedColIndex,
+          rowOutOfBounds ? this.#rows.length : selectedRowIndex
+        ];
+      }
+    }
+    void this.#render();
+  }
+  #shouldAutoScrollToBottom() {
+    if (!this.#autoScrollToBottom) {
+      return false;
+    }
+    if (this.#userScrollState === "SCROLLED_TO_BOTTOM" /* SCROLLED_TO_BOTTOM */) {
+      return true;
+    }
+    if (!this.#userHasFocusInDataGrid && this.#userScrollState !== "MANUAL_SCROLL_NOT_BOTTOM" /* MANUAL_SCROLL_NOT_BOTTOM */) {
+      return true;
+    }
+    return false;
+  }
+  #scrollToBottomIfRequired() {
+    if (this.#hasRenderedAtLeastOnce === false || !this.#shouldAutoScrollToBottom()) {
+      return;
+    }
+    const wrapper = this.#shadow.querySelector(".wrapping-container");
+    if (!wrapper) {
+      return;
+    }
+    void coordinator.scroll(() => {
+      const scrollHeight = wrapper.scrollHeight;
+      wrapper.scrollTo(0, scrollHeight);
+    });
+  }
+  #engageResizeObserver() {
+    if (!this.#hasRenderedAtLeastOnce) {
+      this.#resizeObserver.observe(this.#shadow.host);
+    }
+  }
+  #userHasCellFocused() {
+    return this.#cellUserHasFocused !== null;
+  }
+  #getTableElementForCellUserHasFocused() {
+    if (!this.#cellUserHasFocused) {
+      return null;
+    }
+    const [columnIndex, rowIndex] = this.#cellUserHasFocused;
+    const cell = this.#shadow.querySelector(
+      `[data-row-index="${rowIndex}"][data-col-index="${columnIndex}"]`
+    );
+    return cell;
+  }
+  #focusTableCellInDOM(cell) {
+    cell.focus();
+  }
+  #focusCellIfRequired([newColumnIndex, newRowIndex]) {
+    this.#userHasFocusInDataGrid = true;
+    if (this.#cellUserHasFocused && this.#cellUserHasFocused[0] === newColumnIndex && this.#cellUserHasFocused[1] === newRowIndex) {
+      return;
+    }
+    this.#cellUserHasFocused = [newColumnIndex, newRowIndex];
+    void this.#render();
+    const tableCell = this.#getTableElementForCellUserHasFocused();
+    if (!tableCell) {
+      return;
+    }
+    this.#focusTableCellInDOM(tableCell);
+    if (newRowIndex === 0 && this.#columns[newColumnIndex].sortable) {
+      const localizedSortState = this.#getLocalizedSortState(this.#columns[newColumnIndex]);
+      UI.ARIAUtils.alert(i18nString(UIStrings.enterToSort, { PH1: localizedSortState || "" }));
+    }
+  }
+  #getLocalizedSortState(col) {
+    const currentSortLabel = this.#ariaSortForHeader(col);
+    switch (currentSortLabel) {
+      case "ascending":
+        return UIStrings.sortAsc;
+      case "descending":
+        return UIStrings.sortDesc;
+      case "none":
+        return UIStrings.sortNone;
+    }
+    return void 0;
+  }
+  #onTableKeyDown(event) {
+    const key = event.key;
+    if (!this.#cellUserHasFocused) {
+      return;
+    }
+    if (KEYS_TREATED_AS_CLICKS.has(key)) {
+      const [focusedColumnIndex, focusedRowIndex] = this.#cellUserHasFocused;
+      const activeColumn = this.#columns[focusedColumnIndex];
+      if (focusedRowIndex === 0 && activeColumn && activeColumn.sortable) {
+        this.#onColumnHeaderClick(activeColumn, focusedColumnIndex);
+      }
+    }
+    if (!Platform.KeyboardUtilities.keyIsArrowKey(key)) {
+      return;
+    }
+    const nextFocusedCell = handleArrowKeyNavigation({
+      key,
+      currentFocusedCell: this.#cellUserHasFocused,
+      columns: this.#columns,
+      rows: this.#rows
+    });
+    event.preventDefault();
+    this.#focusCellIfRequired(nextFocusedCell);
+  }
+  #onColumnHeaderClick(col, index) {
+    this.dispatchEvent(new ColumnHeaderClickEvent(col, index));
+  }
+  /**
+   * Applies the aria-sort label to a column's th.
+   * Guidance on values of attribute taken from
+   * https://www.w3.org/TR/wai-aria-practices/examples/grid/dataGrids.html.
+   */
+  #ariaSortForHeader(col) {
+    if (col.sortable && (!this.#sortState || this.#sortState.columnId !== col.id)) {
+      return "none";
+    }
+    if (this.#sortState && this.#sortState.columnId === col.id) {
+      return this.#sortState.direction === SortDirection.ASC ? "ascending" : "descending";
+    }
+    return void 0;
+  }
+  #renderEmptyFillerRow(numberOfVisibleRows) {
+    const emptyCells = this.#columns.map((col, colIndex) => {
+      if (!col.visible) {
+        return LitHtml.nothing;
+      }
+      const emptyCellClasses = LitHtml.Directives.classMap({
+        firstVisibleColumn: colIndex === 0
+      });
+      return html`<td aria-hidden="true" class=${emptyCellClasses} data-filler-row-column-index=${colIndex}></td>`;
+    });
+    const emptyRowClasses = LitHtml.Directives.classMap({
+      "filler-row": true,
+      "padding-row": true,
+      "empty-table": numberOfVisibleRows === 0
+    });
+    return html`<tr aria-hidden="true" class=${emptyRowClasses}>${emptyCells}</tr>`;
+  }
+  #cleanUpAfterResizeColumnComplete() {
+    if (!this.#currentResize) {
+      return;
+    }
+    this.#currentResize.documentForCursorChange.body.style.cursor = this.#currentResize.cursorToRestore;
+    this.#currentResize = null;
+    void this.#alignScrollHandlers();
+  }
+  #onResizePointerDown(event) {
+    if (event.buttons !== 1 || Host.Platform.isMac() && event.ctrlKey) {
+      return;
+    }
+    event.preventDefault();
+    const resizerElement = event.target;
+    if (!resizerElement) {
+      return;
+    }
+    const leftColumnIndex = resizerElement.dataset.columnIndex;
+    if (!leftColumnIndex) {
+      return;
+    }
+    const leftColumnIndexAsNumber = globalThis.parseInt(leftColumnIndex, 10);
+    const rightColumnIndexAsNumber = this.#columns.findIndex((column, index) => {
+      return index > leftColumnIndexAsNumber && column.visible === true;
+    });
+    const leftCell = this.#shadow.querySelector(`td[data-filler-row-column-index="${leftColumnIndexAsNumber}"]`);
+    const rightCell = this.#shadow.querySelector(`td[data-filler-row-column-index="${rightColumnIndexAsNumber}"]`);
+    if (!leftCell || !rightCell) {
+      return;
+    }
+    const leftCellCol = this.#shadow.querySelector(`col[data-col-column-index="${leftColumnIndexAsNumber}"]`);
+    const rightCellCol = this.#shadow.querySelector(`col[data-col-column-index="${rightColumnIndexAsNumber}"]`);
+    if (!leftCellCol || !rightCellCol) {
+      return;
+    }
+    const targetDocumentForCursorChange = event.target.ownerDocument;
+    if (!targetDocumentForCursorChange) {
+      return;
+    }
+    this.#currentResize = {
+      leftCellCol,
+      rightCellCol,
+      leftCellColInitialPercentageWidth: globalThis.parseInt(leftCellCol.style.width, 10),
+      rightCellColInitialPercentageWidth: globalThis.parseInt(rightCellCol.style.width, 10),
+      initialLeftCellWidth: leftCell.clientWidth,
+      initialRightCellWidth: rightCell.clientWidth,
+      initialMouseX: event.x,
+      documentForCursorChange: targetDocumentForCursorChange,
+      cursorToRestore: resizerElement.style.cursor
+    };
+    targetDocumentForCursorChange.body.style.cursor = "col-resize";
+    resizerElement.setPointerCapture(event.pointerId);
+    resizerElement.addEventListener("pointermove", this.#boundOnResizePointerMove);
+  }
+  #onResizePointerMove(event) {
+    event.preventDefault();
+    if (!this.#currentResize) {
+      return;
+    }
+    const MIN_CELL_WIDTH_PERCENTAGE = 10;
+    const MAX_CELL_WIDTH_PERCENTAGE = this.#currentResize.leftCellColInitialPercentageWidth + this.#currentResize.rightCellColInitialPercentageWidth - MIN_CELL_WIDTH_PERCENTAGE;
+    const deltaOfMouseMove = event.x - this.#currentResize.initialMouseX;
+    const absoluteDelta = Math.abs(deltaOfMouseMove);
+    const percentageDelta = absoluteDelta / (this.#currentResize.initialLeftCellWidth + this.#currentResize.initialRightCellWidth) * 100;
+    let newLeftColumnPercentage;
+    let newRightColumnPercentage;
+    if (deltaOfMouseMove > 0) {
+      newLeftColumnPercentage = Platform.NumberUtilities.clamp(
+        this.#currentResize.leftCellColInitialPercentageWidth + percentageDelta,
+        MIN_CELL_WIDTH_PERCENTAGE,
+        MAX_CELL_WIDTH_PERCENTAGE
+      );
+      newRightColumnPercentage = Platform.NumberUtilities.clamp(
+        this.#currentResize.rightCellColInitialPercentageWidth - percentageDelta,
+        MIN_CELL_WIDTH_PERCENTAGE,
+        MAX_CELL_WIDTH_PERCENTAGE
+      );
+    } else if (deltaOfMouseMove < 0) {
+      newLeftColumnPercentage = Platform.NumberUtilities.clamp(
+        this.#currentResize.leftCellColInitialPercentageWidth - percentageDelta,
+        MIN_CELL_WIDTH_PERCENTAGE,
+        MAX_CELL_WIDTH_PERCENTAGE
+      );
+      newRightColumnPercentage = Platform.NumberUtilities.clamp(
+        this.#currentResize.rightCellColInitialPercentageWidth + percentageDelta,
+        MIN_CELL_WIDTH_PERCENTAGE,
+        MAX_CELL_WIDTH_PERCENTAGE
+      );
+    }
+    if (!newLeftColumnPercentage || !newRightColumnPercentage) {
+      return;
+    }
+    this.#currentResize.leftCellCol.style.width = newLeftColumnPercentage.toFixed(2) + "%";
+    this.#currentResize.rightCellCol.style.width = newRightColumnPercentage.toFixed(2) + "%";
+  }
+  #onResizePointerUp(event) {
+    event.preventDefault();
+    const resizer = event.target;
+    if (!resizer) {
+      return;
+    }
+    resizer.releasePointerCapture(event.pointerId);
+    resizer.removeEventListener("pointermove", this.#boundOnResizePointerMove);
+    this.#cleanUpAfterResizeColumnComplete();
+  }
+  #renderResizeForCell(column, position) {
+    const [columnIndex] = position;
+    const lastVisibleColumnIndex = this.#getIndexOfLastVisibleColumn();
+    if (columnIndex === lastVisibleColumnIndex || !column.visible) {
+      return LitHtml.nothing;
+    }
+    return html`<span class="cell-resize-handle"
+     @pointerdown=${this.#onResizePointerDown}
+     @pointerup=${this.#onResizePointerUp}
+     data-column-index=${columnIndex}
+    ></span>`;
+  }
+  #getIndexOfLastVisibleColumn() {
+    let index = this.#columns.length - 1;
+    for (; index > -1; index--) {
+      const col = this.#columns[index];
+      if (col.visible) {
+        break;
+      }
+    }
+    return index;
+  }
+  /**
+   * This function is called when the user right clicks on the header row of the
+   * data grid.
+   */
+  #onHeaderContextMenu(event) {
+    if (event.button !== 2 && event.button !== -1) {
+      return;
+    }
+    const menu = new UI.ContextMenu.ContextMenu(event);
+    addColumnVisibilityCheckboxes(this, menu);
+    const sortMenu = menu.defaultSection().appendSubMenuItem(i18nString(UIStrings.sortBy), false, "sort-by");
+    addSortableColumnItems(this, sortMenu);
+    menu.defaultSection().appendItem(i18nString(UIStrings.resetColumns), () => {
+      this.dispatchEvent(new ContextMenuHeaderResetClickEvent());
+    }, { jslogContext: "reset-columns" });
+    if (this.#contextMenus && this.#contextMenus.headerRow) {
+      this.#contextMenus.headerRow(menu, this.#columns);
+    }
+    void menu.show();
+  }
+  #onBodyRowContextMenu(event) {
+    if (event.button !== 2 && event.button !== -1) {
+      return;
+    }
+    if (!event.target || !(event.target instanceof HTMLElement)) {
+      return;
+    }
+    const rowIndexAttribute = event.target.dataset.rowIndex;
+    if (!rowIndexAttribute) {
+      return;
+    }
+    const rowIndex = parseInt(rowIndexAttribute, 10);
+    const rowThatWasClicked = this.#rows[rowIndex - 1];
+    const menu = new UI.ContextMenu.ContextMenu(event);
+    const sortMenu = menu.defaultSection().appendSubMenuItem(i18nString(UIStrings.sortBy), false, "sort-by");
+    addSortableColumnItems(this, sortMenu);
+    const headerOptionsMenu = menu.defaultSection().appendSubMenuItem(i18nString(UIStrings.headerOptions), false, "header-options");
+    addColumnVisibilityCheckboxes(this, headerOptionsMenu);
+    headerOptionsMenu.defaultSection().appendItem(i18nString(UIStrings.resetColumns), () => {
+      this.dispatchEvent(new ContextMenuHeaderResetClickEvent());
+    }, { jslogContext: "reset-columns" });
+    if (this.#contextMenus && this.#contextMenus.bodyRow) {
+      this.#contextMenus.bodyRow(menu, this.#columns, rowThatWasClicked, this.#rows);
+    }
+    void menu.show();
+  }
+  #onScroll(event) {
+    const wrapper = event.target;
+    if (!wrapper) {
+      return;
+    }
+    const userIsAtBottom = Math.round(wrapper.scrollTop + wrapper.clientHeight) === Math.round(wrapper.scrollHeight);
+    this.#userScrollState = userIsAtBottom ? "SCROLLED_TO_BOTTOM" /* SCROLLED_TO_BOTTOM */ : "MANUAL_SCROLL_NOT_BOTTOM" /* MANUAL_SCROLL_NOT_BOTTOM */;
+    void this.#render();
+  }
+  #alignScrollHandlers() {
+    return coordinator.read(() => {
+      const columnHeaders = this.#shadow.querySelectorAll("th:not(.hidden)");
+      const handlers = this.#shadow.querySelectorAll(".cell-resize-handle");
+      const table = this.#shadow.querySelector("table");
+      if (!table) {
+        return;
+      }
+      columnHeaders.forEach(async (header, index) => {
+        const columnWidth = header.clientWidth;
+        const columnLeftOffset = header.offsetLeft;
+        if (handlers[index]) {
+          const handlerWidth = handlers[index].clientWidth;
+          void coordinator.write(() => {
+            handlers[index].style.left = `${columnLeftOffset + columnWidth - handlerWidth}px`;
+          });
+        }
+      });
+    });
+  }
+  /**
+   * Calculates the index of the first row we want to render, and the last row we want to render.
+   * Pads in each direction by PADDING_ROWS_COUNT so we render some rows that are off scren.
+   */
+  #calculateTopAndBottomRowIndexes() {
+    return coordinator.read(() => {
+      const wrapper = this.#shadow.querySelector(".wrapping-container");
+      let scrollTop = 0;
+      let clientHeight = window.innerHeight;
+      if (wrapper) {
+        scrollTop = wrapper.scrollTop;
+        clientHeight = wrapper.clientHeight;
+      }
+      const padding = ROW_HEIGHT_PIXELS * this.#paddingRowsCount;
+      let topVisibleRow = Math.floor((scrollTop - padding) / ROW_HEIGHT_PIXELS);
+      let bottomVisibleRow = Math.ceil((scrollTop + clientHeight + padding) / ROW_HEIGHT_PIXELS);
+      topVisibleRow = Math.max(0, topVisibleRow);
+      bottomVisibleRow = Math.min(this.#rows.filter((r) => !r.hidden).length, bottomVisibleRow);
+      return {
+        topVisibleRow,
+        bottomVisibleRow
+      };
+    });
+  }
+  #onFocusOut() {
+    this.#userHasFocusInDataGrid = false;
+  }
+  #tabbableCell() {
+    return this.#cellUserHasFocused || this.#cellToFocusIfUserTabsIn;
+  }
+  /**
+   * Renders the data-grid table. Note that we do not render all rows; the
+   * performance cost are too high once you have a large enough table. Instead
+   * we calculate the size of the container we are rendering into, and then
+   * render only the rows required to fill that table (plus a bit extra for
+   * padding).
+   */
+  async #render() {
+    if (!this.isConnected) {
+      return;
+    }
+    if (this.#isRendering) {
+      this.#scheduleRender = true;
+      return;
+    }
+    this.#isRendering = true;
+    const { topVisibleRow, bottomVisibleRow } = await this.#calculateTopAndBottomRowIndexes();
+    const nonHiddenRows = this.#rows.filter((row) => !row.hidden);
+    const renderableRows = nonHiddenRows.filter((_, idx) => idx >= topVisibleRow && idx <= bottomVisibleRow);
+    const indexOfFirstVisibleColumn = this.#columns.findIndex((col) => col.visible);
+    const anyColumnsSortable = this.#columns.some((col) => col.sortable === true);
+    const containerClassMap = {
+      "wrapping-container": true,
+      "show-scrollbar": this.#showScrollbar === true,
+      striped: this.#striped === true
+    };
+    await coordinator.write(() => {
+      LitHtml.render(html`
+      ${this.#columns.map((col, columnIndex) => {
+        return this.#renderResizeForCell(col, [columnIndex, 0]);
+      })}
+      <div class=${classMap(containerClassMap)} @scroll=${this.#onScroll} @focusout=${this.#onFocusOut}>
+        <table
+          aria-label=${ifDefined(this.#label)}
+          aria-rowcount=${this.#rows.length}
+          aria-colcount=${this.#columns.length}
+          @keydown=${this.#onTableKeyDown}
+        >
+          <!-- @ts-ignore -->
+          <colgroup>
+            ${this.#columns.map((col, colIndex) => {
+        const width = calculateColumnWidthPercentageFromWeighting(this.#columns, col.id);
+        const style = `width: ${width}%`;
+        if (!col.visible) {
+          return LitHtml.nothing;
+        }
+        return html`<col style=${style} data-col-column-index=${colIndex}>`;
+      })}
+          </colgroup>
+          <thead>
+            <tr @contextmenu=${this.#onHeaderContextMenu}>
+              ${this.#columns.map((col, columnIndex) => {
+        const thClasses = classMap({
+          hidden: !col.visible,
+          firstVisibleColumn: columnIndex === indexOfFirstVisibleColumn,
+          sortable: anyColumnsSortable
+        });
+        const tabbableCell2 = this.#tabbableCell();
+        const cellIsFocusableCell = anyColumnsSortable && columnIndex === tabbableCell2[0] && tabbableCell2[1] === 0;
+        return html`<th class=${thClasses}
+                  jslog=${VisualLogging.tableHeader().track({ click: anyColumnsSortable, resize: true }).context(col.id)}
+                  style=${ifDefined(col.styles ? styleMap(col.styles) : void 0)}
+                  data-grid-header-cell=${col.id}
+                  @focus=${() => {
+          this.#focusCellIfRequired([columnIndex, 0]);
+        }}
+                  @click=${() => {
+          this.#onColumnHeaderClick(col, columnIndex);
+        }}
+                  title=${col.title}
+                  aria-sort=${ifDefined(this.#ariaSortForHeader(col))}
+                  aria-colindex=${columnIndex + 1}
+                  data-row-index='0'
+                  data-col-index=${columnIndex}
+                  tabindex=${ifDefined(anyColumnsSortable ? cellIsFocusableCell ? "0" : "-1" : void 0)}
+                >${col.titleElement || col.title}</th>`;
+      })}
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="filler-row-top padding-row" style=${styleMap({
+        height: `${topVisibleRow * ROW_HEIGHT_PIXELS}px`
+      })} aria-hidden="true"></tr>
+            ${repeat(renderableRows, (row) => this.#rowIndexMap.get(row), (row) => {
+        const rowIndex = this.#rowIndexMap.get(row);
+        if (rowIndex === void 0) {
+          throw new Error("Trying to render a row that has no index in the rowIndexMap");
+        }
+        const tabbableCell2 = this.#tabbableCell();
+        const tableRowIndex = rowIndex + 1;
+        const rowIsSelected = this.#cellUserHasFocused ? tableRowIndex === this.#cellUserHasFocused[1] : false;
+        const rowClasses = LitHtml.Directives.classMap({
+          selected: rowIsSelected,
+          hidden: row.hidden === true
+        });
+        return html`
+                <tr
+                  aria-rowindex=${rowIndex + 1}
+                  class=${rowClasses}
+                  style=${ifDefined(row.styles ? styleMap(row.styles) : void 0)}
+                  jslog=${VisualLogging.tableRow().track({ keydown: "ArrowUp|ArrowDown|ArrowLeft|ArrowRight|Enter|Space" })}
+                  @contextmenu=${this.#onBodyRowContextMenu}
+                  @mouseenter=${() => {
+          this.dispatchEvent(new RowMouseEnterEvent(row));
+        }}
+                  @mouseleave=${() => {
+          this.dispatchEvent(new RowMouseLeaveEvent(row));
+        }}
+                >${this.#columns.map((col, columnIndex) => {
+          const cell = getRowEntryForColumnId(row, col.id);
+          const cellClasses = classMap({
+            hidden: !col.visible,
+            firstVisibleColumn: columnIndex === indexOfFirstVisibleColumn
+          });
+          const cellIsFocusableCell = columnIndex === tabbableCell2[0] && tableRowIndex === tabbableCell2[1];
+          const cellOutput = col.visible ? renderCellValue(cell) : null;
+          return html`<td
+                    class=${cellClasses}
+                    jslog=${VisualLogging.tableCell().track({ click: true })}).context(col.id)}
+                    style=${ifDefined(col.styles ? styleMap(col.styles) : void 0)}
+                    tabindex=${cellIsFocusableCell ? "0" : "-1"}
+                    aria-colindex=${columnIndex + 1}
+                    title=${cell.title || getCellTitleFromCellContent(String(cell.value))}
+                    data-row-index=${tableRowIndex}
+                    data-col-index=${columnIndex}
+                    data-grid-value-cell-for-column=${col.id}
+                    @focus=${() => {
+            this.#focusCellIfRequired([columnIndex, tableRowIndex]);
+            this.dispatchEvent(new BodyCellFocusedEvent(cell, row));
+          }}
+                  >${cellOutput}</td>`;
+        })}
+              </tr>`;
+      })}
+            ${this.#renderEmptyFillerRow(renderableRows.length)}
+            <tr class="filler-row-bottom padding-row" style=${styleMap({
+        height: `${Math.max(0, nonHiddenRows.length - bottomVisibleRow) * ROW_HEIGHT_PIXELS}px`
+      })} aria-hidden="true"></tr>
+          </tbody>
+        </table>
+      </div>
+      `, this.#shadow, {
+        host: this
+      });
+    });
+    const tabbableCell = this.#tabbableCell();
+    const currentlyFocusedRowIndex = tabbableCell[1];
+    const tabbableCellElement = this.#getTableElementForCellUserHasFocused();
+    if (this.#userHasFocusInDataGrid && currentlyFocusedRowIndex > 0 && tabbableCellElement) {
+      this.#focusTableCellInDOM(tabbableCellElement);
+    }
+    this.#scrollToBottomIfRequired();
+    this.#engageResizeObserver();
+    if (this.#hasRenderedAtLeastOnce) {
+      void this.#alignScrollHandlers();
+    }
+    this.#isRendering = false;
+    this.#hasRenderedAtLeastOnce = true;
+    if (this.#scheduleRender) {
+      this.#scheduleRender = false;
+      void this.#render();
+    }
+  }
+}
+customElements.define("devtools-data-grid", DataGrid);
+//# sourceMappingURL=DataGrid.js.map

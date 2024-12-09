@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../../../../../third_party/devtools-frontend/src/front_end/models/trace/extras/extras.ts"],
+  "sourcesContent": ["// Copyright 2023 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\nexport * as FetchNodes from './FetchNodes.js';\nexport * as FilmStrip from './FilmStrip.js';\nexport * as MainThreadActivity from './MainThreadActivity.js';\nexport * as Metadata from './Metadata.js';\nexport * as StackTraceForEvent from './StackTraceForEvent.js';\nexport * as ThirdParties from './ThirdParties.js';\nexport * as TimelineJSProfile from './TimelineJSProfile.js';\nexport * as TraceFilter from './TraceFilter.js';\nexport * as TraceTree from './TraceTree.js';\nexport * as URLForEntry from './URLForEntry.js';\n"],
+  "mappings": ";AAIA,YAAY,gBAAgB;AAC5B,YAAY,eAAe;AAC3B,YAAY,wBAAwB;AACpC,YAAY,cAAc;AAC1B,YAAY,wBAAwB;AACpC,YAAY,kBAAkB;AAC9B,YAAY,uBAAuB;AACnC,YAAY,iBAAiB;AAC7B,YAAY,eAAe;AAC3B,YAAY,iBAAiB;",
+  "names": []
+}

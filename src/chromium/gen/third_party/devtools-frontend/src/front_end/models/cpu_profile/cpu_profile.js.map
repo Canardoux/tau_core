@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../../../../third_party/devtools-frontend/src/front_end/models/cpu_profile/cpu_profile.ts"],
+  "sourcesContent": ["// Copyright 2023 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\nimport * as CPUProfileDataModel from './CPUProfileDataModel.js';\nimport * as ProfileTreeModel from './ProfileTreeModel.js';\n\nexport {\n  CPUProfileDataModel,\n  ProfileTreeModel,\n};\n"],
+  "mappings": ";AAIA,YAAY,yBAAyB;AACrC,YAAY,sBAAsB;AAElC;AAAA,EACE;AAAA,EACA;AAAA;",
+  "names": []
+}

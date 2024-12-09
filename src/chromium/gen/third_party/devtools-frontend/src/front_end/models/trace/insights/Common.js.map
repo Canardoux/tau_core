@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../../../../../third_party/devtools-frontend/src/front_end/models/trace/insights/Common.ts"],
+  "sourcesContent": ["// Copyright 2024 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\nimport type {InsightModels, TraceInsightSets} from './types.js';\n\nexport function getInsight<InsightName extends keyof InsightModels>(\n    insightName: InsightName, insights: TraceInsightSets|null, key: string|null): InsightModels[InsightName]|null {\n  if (!insights || !key) {\n    return null;\n  }\n\n  const insightSets = insights.get(key);\n  if (!insightSets) {\n    return null;\n  }\n\n  const insight = insightSets.model[insightName];\n  if (insight instanceof Error) {\n    return null;\n  }\n\n  // For some reason typescript won't narrow the type by removing Error, so do it manually.\n  return insight as InsightModels[InsightName];\n}\n"],
+  "mappings": ";AAMO,gBAAS,WACZ,aAA0B,UAAiC,KAAmD;AAChH,MAAI,CAAC,YAAY,CAAC,KAAK;AACrB,WAAO;AAAA,EACT;AAEA,QAAM,cAAc,SAAS,IAAI,GAAG;AACpC,MAAI,CAAC,aAAa;AAChB,WAAO;AAAA,EACT;AAEA,QAAM,UAAU,YAAY,MAAM,WAAW;AAC7C,MAAI,mBAAmB,OAAO;AAC5B,WAAO;AAAA,EACT;AAGA,SAAO;AACT;",
+  "names": []
+}

@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../../../../third_party/devtools-frontend/src/front_end/third_party/marked/marked.ts"],
+  "sourcesContent": ["import * as Marked from './package/lib/marked.esm.js';\n\nexport {Marked};\n"],
+  "mappings": ";AAAA,YAAY,YAAY;AAExB,SAAQ;",
+  "names": []
+}

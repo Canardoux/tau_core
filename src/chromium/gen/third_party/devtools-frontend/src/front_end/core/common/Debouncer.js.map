@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../../../../third_party/devtools-frontend/src/front_end/core/common/Debouncer.ts"],
+  "sourcesContent": ["// Copyright 2020 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\n/**\n * Debounce utility function, ensures that the function passed in is only called once the function stops being called and the delay has expired.\n */\nexport const debounce = function(func: () => void, delay: number): () => void {\n  let timer = 0;\n  const debounced = (): void => {\n    clearTimeout(timer);\n    timer = window.setTimeout(() => func(), delay);\n  };\n  return debounced;\n};\n"],
+  "mappings": ";AAOO,aAAM,WAAW,SAAS,MAAkB,OAA2B;AAC5E,MAAI,QAAQ;AACZ,QAAM,YAAY,MAAY;AAC5B,iBAAa,KAAK;AAClB,YAAQ,OAAO,WAAW,MAAM,KAAK,GAAG,KAAK;AAAA,EAC/C;AACA,SAAO;AACT;",
+  "names": []
+}

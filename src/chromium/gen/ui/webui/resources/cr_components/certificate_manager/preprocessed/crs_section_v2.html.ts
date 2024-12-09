@@ -1,0 +1,22 @@
+import {html} from '//resources/polymer/v3_0/polymer/polymer_bundled.min.js';
+export function getTemplate() {
+  return html`<!--_html_template_start_--><style include="cr-page-host-style cr-shared-style certificate-manager-style-v2">
+</style>
+
+<div class="cr-centered-card-container">
+  <h2 class="page-title">[[i18n('certificateManagerV2CRSCerts')]]</h2>
+  [[i18n("certificateManagerV2CRSCertsDescription")]]
+  <a href="[[crsLearnMoreUrl_]]" target="_blank"
+      aria-label="[[i18n('certificateManagerV2CRSLearnMoreLinkAriaLabel')]]">
+    [[i18n("certificateManagerV2CRSLearnMoreLink")]]
+  </a>
+
+  <certificate-list-v2
+      id="crsCerts"
+      no-collapse
+      cert-source="[[certificateSourceEnum_.kChromeRootStore]]"
+      header-text="[[i18n('certificateManagerV2TrustedCertsList')]]">
+  </certificate-list-v2>
+</div>
+<!--_html_template_end_-->`;
+}

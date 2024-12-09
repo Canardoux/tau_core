@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../../../../../third_party/devtools-frontend/src/front_end/panels/recorder/injected/MonotonicArray.ts"],
+  "sourcesContent": ["// Copyright 2023 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\nexport class MonotonicArray<T extends object> {\n  #values = new WeakMap<T, number>();\n  #nextId = 1;\n\n  getOrInsert = (node: T): number => {\n    const value = this.#values.get(node);\n    if (value !== undefined) {\n      return value;\n    }\n    this.#values.set(node, this.#nextId);\n    this.#nextId++;\n    return this.#nextId - 1;\n  };\n}\n"],
+  "mappings": ";AAIO,aAAM,eAAiC;AAAA,EAC5C,UAAU,oBAAI,QAAmB;AAAA,EACjC,UAAU;AAAA,EAEV,cAAc,CAAC,SAAoB;AACjC,UAAM,QAAQ,KAAK,QAAQ,IAAI,IAAI;AACnC,QAAI,UAAU,QAAW;AACvB,aAAO;AAAA,IACT;AACA,SAAK,QAAQ,IAAI,MAAM,KAAK,OAAO;AACnC,SAAK;AACL,WAAO,KAAK,UAAU;AAAA,EACxB;AACF;",
+  "names": []
+}

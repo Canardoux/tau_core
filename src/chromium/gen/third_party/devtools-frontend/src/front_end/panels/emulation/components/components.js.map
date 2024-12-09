@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../../../../../third_party/devtools-frontend/src/front_end/panels/emulation/components/components.ts"],
+  "sourcesContent": ["// Copyright 2021 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\nimport * as DeviceSizeInputElement from './DeviceSizeInputElement.js';\n\nexport {\n  DeviceSizeInputElement,\n};\n"],
+  "mappings": ";AAIA,YAAY,4BAA4B;AAExC;AAAA,EACE;AAAA;",
+  "names": []
+}

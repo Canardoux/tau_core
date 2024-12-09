@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../../../../third_party/devtools-frontend/src/front_end/models/source_map_scopes/source_map_scopes.ts"],
+  "sourcesContent": ["// Copyright 2022 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\nimport * as NamesResolver from './NamesResolver.js';\nimport * as ScopeChainModel from './ScopeChainModel.js';\nimport * as ScopeTreeCache from './ScopeTreeCache.js';\n\nexport {\n  NamesResolver,\n  ScopeChainModel,\n  ScopeTreeCache,\n};\n"],
+  "mappings": ";AAIA,YAAY,mBAAmB;AAC/B,YAAY,qBAAqB;AACjC,YAAY,oBAAoB;AAEhC;AAAA,EACE;AAAA,EACA;AAAA,EACA;AAAA;",
+  "names": []
+}

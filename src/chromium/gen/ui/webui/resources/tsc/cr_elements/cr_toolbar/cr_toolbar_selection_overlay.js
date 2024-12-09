@@ -1,0 +1,67 @@
+// Copyright 2017 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+/**
+ * @fileoverview Element which displays the number of selected items, designed
+ * to be used as an overlay on top of <cr-toolbar>. See <history-toolbar> for an
+ * example usage.
+ *
+ * Note that the embedder is expected to set position: relative to make the
+ * absolute positioning of this element work, and the cr-toolbar should have the
+ * has-overlay attribute set when its overlay is shown to prevent access through
+ * tab-traversal.
+ */
+import '../cr_icon_button/cr_icon_button.js';
+import '../icons.html.js';
+import { CrLitElement } from '//resources/lit/v3_0/lit.rollup.js';
+import { getInstance as getAnnouncerInstance } from '../cr_a11y_announcer/cr_a11y_announcer.js';
+import { getCss } from './cr_toolbar_selection_overlay.css.js';
+import { getHtml } from './cr_toolbar_selection_overlay.html.js';
+export class CrToolbarSelectionOverlayElement extends CrLitElement {
+    constructor() {
+        super(...arguments);
+        this.show = false;
+        this.cancelLabel = '';
+        this.selectionLabel = '';
+    }
+    static get is() {
+        return 'cr-toolbar-selection-overlay';
+    }
+    static get styles() {
+        return getCss();
+    }
+    render() {
+        return getHtml.bind(this)();
+    }
+    static get properties() {
+        return {
+            show: {
+                type: Boolean,
+                reflect: true,
+            },
+            cancelLabel: { type: String },
+            selectionLabel: { type: String },
+        };
+    }
+    firstUpdated() {
+        this.setAttribute('role', 'toolbar');
+    }
+    updated(changedProperties) {
+        super.updated(changedProperties);
+        // Parent element is responsible for updating `selectionLabel` when `show`
+        // changes.
+        if (changedProperties.has('selectionLabel')) {
+            if (changedProperties.get('selectionLabel') === undefined &&
+                this.selectionLabel === '') {
+                return;
+            }
+            this.setAttribute('aria-label', this.selectionLabel);
+            const announcer = getAnnouncerInstance();
+            announcer.announce(this.selectionLabel);
+        }
+    }
+    onClearSelectionClick_() {
+        this.fire('clear-selected-items');
+    }
+}
+customElements.define(CrToolbarSelectionOverlayElement.is, CrToolbarSelectionOverlayElement);

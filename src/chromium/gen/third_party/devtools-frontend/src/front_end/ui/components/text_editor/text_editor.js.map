@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../../../../../third_party/devtools-frontend/src/front_end/ui/components/text_editor/text_editor.ts"],
+  "sourcesContent": ["// Copyright 2021 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\nexport * as AutocompleteHistory from './AutocompleteHistory.js';\nexport * as Config from './config.js';\nexport * as ExecutionPositionHighlighter from './ExecutionPositionHighlighter.js';\nexport * as JavaScript from './javascript.js';\nexport * as Position from './position.js';\nexport * as TextEditor from './TextEditor.js';\nexport * as TextEditorHistory from './TextEditorHistory.js';\n"],
+  "mappings": ";AAIA,YAAY,yBAAyB;AACrC,YAAY,YAAY;AACxB,YAAY,kCAAkC;AAC9C,YAAY,gBAAgB;AAC5B,YAAY,cAAc;AAC1B,YAAY,gBAAgB;AAC5B,YAAY,uBAAuB;",
+  "names": []
+}
