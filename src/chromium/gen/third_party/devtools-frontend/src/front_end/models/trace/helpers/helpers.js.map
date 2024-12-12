@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../../../../../../../../../third_party/devtools-frontend/src/front_end/models/trace/helpers/helpers.ts"],
-  "sourcesContent": ["// Copyright 2022 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\nexport * as Extensions from './Extensions.js';\nexport * as Network from './Network.js';\nexport * as SamplesIntegrator from './SamplesIntegrator.js';\nexport * as SyntheticEvents from './SyntheticEvents.js';\nexport * as Timing from './Timing.js';\nexport * as Trace from './Trace.js';\nexport * as TreeHelpers from './TreeHelpers.js';\n"],
-  "mappings": ";AAIA,YAAY,gBAAgB;AAC5B,YAAY,aAAa;AACzB,YAAY,uBAAuB;AACnC,YAAY,qBAAqB;AACjC,YAAY,YAAY;AACxB,YAAY,WAAW;AACvB,YAAY,iBAAiB;",
-  "names": []
-}

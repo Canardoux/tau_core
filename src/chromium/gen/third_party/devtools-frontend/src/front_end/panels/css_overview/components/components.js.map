@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../../../../../../../../../third_party/devtools-frontend/src/front_end/panels/css_overview/components/components.ts"],
-  "sourcesContent": ["// Copyright 2021 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\nimport * as CSSOverviewStartView from './CSSOverviewStartView.js';\n\nexport {\n  CSSOverviewStartView,\n};\n"],
-  "mappings": ";AAIA,YAAY,0BAA0B;AAEtC;AAAA,EACE;AAAA;",
-  "names": []
-}

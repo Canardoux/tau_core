@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../../../../../../../../../third_party/devtools-frontend/src/front_end/ui/components/panel_introduction_steps/panel_introduction_steps.ts"],
-  "sourcesContent": ["// Copyright 2022 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\nexport * as PanelIntroductionSteps from './PanelIntroductionSteps.js';\n"],
-  "mappings": ";AAIA,YAAY,4BAA4B;",
-  "names": []
-}

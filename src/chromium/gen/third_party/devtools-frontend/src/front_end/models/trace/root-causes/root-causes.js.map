@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../../../../../../../../../third_party/devtools-frontend/src/front_end/models/trace/root-causes/root-causes.ts"],
-  "sourcesContent": ["// Copyright 2023 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\nexport * as RootCauses from './RootCauses.js';\n"],
-  "mappings": ";AAIA,YAAY,gBAAgB;",
-  "names": []
-}

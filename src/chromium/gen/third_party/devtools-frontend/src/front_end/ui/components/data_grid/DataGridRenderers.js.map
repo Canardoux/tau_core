@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../../../../../../../../../third_party/devtools-frontend/src/front_end/ui/components/data_grid/DataGridRenderers.ts"],
-  "sourcesContent": ["// Copyright 2020 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\nimport * as LitHtml from '../../../ui/lit-html/lit-html.js';\n\nimport type {CellValue} from './DataGridUtils.js';\n\nconst {html} = LitHtml;\n\nexport const primitiveRenderer = (value: CellValue): LitHtml.TemplateResult => {\n  return html`${value}`;\n};\n\nexport const codeBlockRenderer = (value: CellValue): LitHtml.TemplateResult|typeof LitHtml.nothing => {\n  if (!value) {\n    return LitHtml.nothing;\n  }\n  const stringValue = String(value);\n  return html`<code>${stringValue}</code>`;\n};\n\nexport const iconRenderer = (icon: CellValue): LitHtml.TemplateResult|typeof LitHtml.nothing => {\n  if (!icon) {\n    return LitHtml.nothing;\n  }\n  return html`<div style=\"display: flex; justify-content: center;\">${icon}</div>`;\n};\n"],
-  "mappings": ";AAGA,YAAY,aAAa;AAIzB,MAAM,EAAC,KAAI,IAAI;AAER,aAAM,oBAAoB,CAAC,UAA6C;AAC7E,SAAO,OAAO,KAAK;AACrB;AAEO,aAAM,oBAAoB,CAAC,UAAoE;AACpG,MAAI,CAAC,OAAO;AACV,WAAO,QAAQ;AAAA,EACjB;AACA,QAAM,cAAc,OAAO,KAAK;AAChC,SAAO,aAAa,WAAW;AACjC;AAEO,aAAM,eAAe,CAAC,SAAmE;AAC9F,MAAI,CAAC,MAAM;AACT,WAAO,QAAQ;AAAA,EACjB;AACA,SAAO,4DAA4D,IAAI;AACzE;",
-  "names": []
-}

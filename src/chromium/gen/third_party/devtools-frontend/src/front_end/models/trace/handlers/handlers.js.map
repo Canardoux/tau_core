@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../../../../../../../../../third_party/devtools-frontend/src/front_end/models/trace/handlers/handlers.ts"],
-  "sourcesContent": ["// Copyright 2022 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\nexport * as ModelHandlers from './ModelHandlers.js';\nexport * as Threads from './Threads.js';\nexport * as Types from './types.js';\n"],
-  "mappings": ";AAIA,YAAY,mBAAmB;AAC/B,YAAY,aAAa;AACzB,YAAY,WAAW;",
-  "names": []
-}

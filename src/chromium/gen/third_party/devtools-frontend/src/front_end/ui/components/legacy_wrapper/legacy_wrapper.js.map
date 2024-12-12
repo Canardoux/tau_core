@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../../../../../../../../../third_party/devtools-frontend/src/front_end/ui/components/legacy_wrapper/legacy_wrapper.ts"],
-  "sourcesContent": ["// Copyright 2023 The Chromium Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\nimport * as LegacyWrapper from './LegacyWrapper.js';\n\nexport {\n  LegacyWrapper,\n};\n"],
-  "mappings": ";AAGA,YAAY,mBAAmB;AAE/B;AAAA,EACE;AAAA;",
-  "names": []
-}

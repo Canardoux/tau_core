@@ -1,8 +1,0 @@
-{
-  "deps": [
-    "mojom.build_metadata"
-  ],
-  "sources": [
-    "../../../../../../sandbox/mac/mojom/traits_test_service.mojom"
-  ]
-}
