@@ -1,0 +1,22 @@
+PODS:
+  - Flutter (1.0.0)
+  - tau_core (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - tau_core (from `.symlinks/plugins/tau_core/ios`)
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  tau_core:
+    :path: ".symlinks/plugins/tau_core/ios"
+
+SPEC CHECKSUMS:
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  tau_core: ebceaa4acf65debd21703db08a59a7699894d3a6
+
+PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796
+
+COCOAPODS: 1.16.2

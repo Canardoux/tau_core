@@ -1,0 +1,43 @@
+Test matched styles for nodes include shadow dom scoped styles.
+
+Before
+After
+
+== Running test suite: CSS.ShadowScopedStyle
+-- Running test case: CSS.ShadowScopedStyle.HostStyles
+PASS: Node should have shadow roots.
+PASS: Node should not be in a shadow tree.
+PASS: Node should have an open shadow root.
+PASS: Node should have no pseudo element styles.
+STYLES:
+#shadow-host {
+    padding: 5px;
+}
+#shadow-host {
+    padding: 10px;
+}
+:host {
+    padding: 20px;
+}
+address, blockquote, center, div, figure, figcaption, footer, form, header, hr, legend, listing, main, p, plaintext, pre, summary, xmp, article, aside, h1, h2, h3, h4, h5, h6, hgroup, nav, section, search, table, caption, colgroup, col, thead, tbody, tfoot, tr, td, th, dir, dd, dl, dt, menu, ol, ul, li, bdi, output {
+}
+address, article, aside, div, footer, header, hgroup, main, nav, search, section {
+}
+html {
+}
+
+-- Running test case: CSS.ShadowScopedStyle.ElementInShadowTree
+PASS: Node should not have shadow roots.
+PASS: Node should be in a shadow tree.
+STYLES:
+#shadow-node {
+    color: green;
+}
+div {
+    color: blue;
+}
+address, blockquote, center, div, figure, figcaption, footer, form, header, hr, legend, listing, main, p, plaintext, pre, summary, xmp, article, aside, h1, h2, h3, h4, h5, h6, hgroup, nav, section, search, table, caption, colgroup, col, thead, tbody, tfoot, tr, td, th, dir, dd, dl, dt, menu, ol, ul, li, bdi, output {
+}
+address, article, aside, div, footer, header, hgroup, main, nav, search, section {
+}
+
