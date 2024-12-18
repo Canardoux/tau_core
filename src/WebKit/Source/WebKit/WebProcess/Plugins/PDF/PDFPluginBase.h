@@ -27,6 +27,7 @@
 
 #if ENABLE(PDF_PLUGIN)
 
+#include "CursorContext.h"
 #include "FrameInfoData.h"
 #include "PDFPluginIdentifier.h"
 #include "WebFoundTextRange.h"
@@ -34,6 +35,8 @@
 #include <WebCore/AffineTransform.h>
 #include <WebCore/FindOptions.h>
 #include <WebCore/FloatRect.h>
+#include <WebCore/PageIdentifier.h>
+#include <WebCore/PlatformMouseEvent.h>
 #include <WebCore/PluginData.h>
 #include <WebCore/PluginViewBase.h>
 #include <WebCore/ScrollTypes.h>
@@ -286,7 +289,7 @@ public:
     virtual void setPDFDisplayModeForTesting(const String&) { }
     void registerPDFTest(RefPtr<WebCore::VoidCallback>&&);
 
-    void navigateToURL(const URL&);
+    void navigateToURL(const URL&, std::optional<WebCore::PlatformMouseEvent>&& = std::nullopt);
 
     virtual void attemptToUnlockPDF(const String& password) = 0;
 
@@ -307,9 +310,7 @@ public:
     virtual void didSameDocumentNavigationForFrame(WebFrame&) { }
 
     using PasteboardItem = PDFPluginPasteboardItem;
-#if PLATFORM(MAC)
-    void writeItemsToPasteboard(NSString *pasteboardName, Vector<PasteboardItem>&&) const;
-#endif
+    void writeItemsToGeneralPasteboard(Vector<PasteboardItem>&&) const;
 
     uint64_t streamedBytes() const;
     std::optional<WebCore::FrameIdentifier> rootFrameID() const final;
@@ -317,8 +318,12 @@ public:
 #if PLATFORM(IOS_FAMILY)
     virtual void setSelectionRange(WebCore::FloatPoint /* pointInRootView */, WebCore::TextGranularity) { }
     virtual void clearSelection() { }
+    virtual std::pair<URL, WebCore::FloatRect> linkURLAndBoundsAtPoint(WebCore::FloatPoint /* pointInRootView */) const { return { }; }
+    virtual std::optional<WebCore::FloatRect> highlightRectForTapAtPoint(WebCore::FloatPoint /* pointInRootView */) const { return std::nullopt; }
+    virtual void handleSyntheticClick(WebCore::PlatformMouseEvent&&) { }
     virtual SelectionWasFlipped moveSelectionEndpoint(WebCore::FloatPoint /* pointInRootView */, SelectionEndpoint);
     virtual SelectionEndpoint extendInitialSelection(WebCore::FloatPoint /* pointInRootView */, WebCore::TextGranularity);
+    virtual CursorContext cursorContext(WebCore::FloatPoint /* pointInRootView */) const { return { }; }
 #endif
 
     bool populateEditorStateIfNeeded(EditorState&) const;
@@ -427,6 +432,17 @@ protected:
     virtual void teardownPasswordEntryForm() = 0;
 
     String annotationStyle() const;
+
+    static NSString *htmlPasteboardType();
+    static NSString *rtfPasteboardType();
+    static NSString *stringPasteboardType();
+    static NSString *urlPasteboardType();
+
+#if PLATFORM(MAC)
+    void writeStringToFindPasteboard(const String&) const;
+#endif
+
+    std::optional<WebCore::PageIdentifier> pageIdentifier() const;
 
     SingleThreadWeakPtr<PluginView> m_view;
     WeakPtr<WebFrame> m_frame;

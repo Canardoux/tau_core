@@ -111,6 +111,7 @@ enum class PaginationMode : uint8_t;
 
 enum class ApplePayButtonStyle : uint8_t;
 enum class ApplePayButtonType : uint8_t;
+enum class AppleVisualEffect : uint8_t;
 enum class AspectRatioType : uint8_t;
 enum class AutoRepeatType : uint8_t;
 enum class BackfaceVisibility : uint8_t;
@@ -263,6 +264,7 @@ struct MasonryAutoFlow;
 struct NamedGridAreaMap;
 struct NamedGridLinesMap;
 struct OrderedNamedGridLinesMap;
+struct PositionTryFallback;
 struct SingleTimelineRange;
 
 struct ScrollSnapAlign;
@@ -574,6 +576,9 @@ public:
     WEBCORE_EXPORT const FontCascade& fontCascade() const;
     WEBCORE_EXPORT const FontMetrics& metricsOfPrimaryFont() const;
     WEBCORE_EXPORT const FontCascadeDescription& fontDescription() const;
+
+    inline bool fontCascadeEqual(const RenderStyle&) const;
+
     float specifiedFontSize() const;
     float computedFontSize() const;
     std::pair<FontOrientation, NonCJKGlyphOrientation> fontAndGlyphOrientation();
@@ -1147,6 +1152,10 @@ public:
     inline ApplePayButtonType applePayButtonType() const;
 #endif
 
+#if HAVE(CORE_MATERIAL)
+    inline AppleVisualEffect appleVisualEffect() const;
+#endif
+
     inline MathStyle mathStyle() const;
 
     inline const Vector<Style::ScopedName>& viewTransitionClasses() const;
@@ -1658,6 +1667,10 @@ public:
     inline void setApplePayButtonType(ApplePayButtonType);
 #endif
 
+#if HAVE(CORE_MATERIAL)
+    inline void setAppleVisualEffect(AppleVisualEffect);
+#endif
+
     void addCustomPaintWatchProperty(const AtomString&);
 
     // Support for paint-order, stroke-linecap, stroke-linejoin, and stroke-miterlimit from https://drafts.fxtf.org/paint/.
@@ -2105,6 +2118,10 @@ public:
     static constexpr ApplePayButtonType initialApplePayButtonType();
 #endif
 
+#if HAVE(CORE_MATERIAL)
+    static constexpr AppleVisualEffect initialAppleVisualEffect();
+#endif
+
     static inline Vector<GridTrackSize> initialGridColumnTrackSizes();
     static inline Vector<GridTrackSize> initialGridRowTrackSizes();
 
@@ -2289,6 +2306,10 @@ public:
     static constexpr Style::PositionTryOrder initialPositionTryOrder();
     inline Style::PositionTryOrder positionTryOrder() const;
     inline void setPositionTryOrder(Style::PositionTryOrder);
+
+    static Vector<PositionTryFallback> initialPositionTryFallbacks();
+    const Vector<PositionTryFallback>& positionTryFallbacks() const;
+    void setPositionTryFallbacks(const Vector<PositionTryFallback>&);
 
 private:
     struct NonInheritedFlags {

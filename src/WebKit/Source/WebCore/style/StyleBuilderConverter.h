@@ -54,7 +54,6 @@
 #include "CSSRayValue.h"
 #include "CSSReflectValue.h"
 #include "CSSSubgridValue.h"
-#include "CSSTimingFunctionValue.h"
 #include "CSSValuePair.h"
 #include "CalculationValue.h"
 #include "FontPalette.h"
@@ -78,6 +77,7 @@
 #include "StyleBasicShape.h"
 #include "StyleBuilderState.h"
 #include "StyleColorScheme.h"
+#include "StyleEasingFunction.h"
 #include "StylePathData.h"
 #include "StylePrimitiveNumericTypes+Conversions.h"
 #include "StyleRayFunction.h"
@@ -252,6 +252,8 @@ public:
 
     static SingleTimelineRange convertAnimationRangeStart(const BuilderState&, const CSSValue&);
     static SingleTimelineRange convertAnimationRangeEnd(const BuilderState&, const CSSValue&);
+
+    static Vector<PositionTryFallback> convertPositionTryFallbacks(const BuilderState&, const CSSValue&);
 
     template<CSSValueID, CSSValueID> static WebCore::Length convertPositionComponent(const BuilderState&, const CSSValue&);
 
@@ -2164,9 +2166,9 @@ inline LineClampValue BuilderConverter::convertLineClamp(const BuilderState& bui
     return LineClampValue();
 }
 
-inline RefPtr<TimingFunction> BuilderConverter::convertTimingFunction(const BuilderState&, const CSSValue& value)
+inline RefPtr<TimingFunction> BuilderConverter::convertTimingFunction(const BuilderState& builderState, const CSSValue& value)
 {
-    return createTimingFunction(value);
+    return Style::createTimingFunction(value, builderState.cssToLengthConversionData());
 }
 
 inline TimelineScope BuilderConverter::convertTimelineScope(const BuilderState&, const CSSValue& value)
@@ -2189,6 +2191,44 @@ inline TimelineScope BuilderConverter::convertTimelineScope(const BuilderState&,
     return { TimelineScope::Type::Ident, WTF::map(*list, [&](auto& item) {
         return AtomString { downcast<CSSPrimitiveValue>(item).stringValue() };
     }) };
+}
+
+inline Vector<PositionTryFallback> BuilderConverter::convertPositionTryFallbacks(const BuilderState&, const CSSValue& value)
+{
+    auto fallbackForValueList = [&](const CSSValueList& valueList) -> std::optional<PositionTryFallback> {
+        if (valueList.separator() != CSSValueList::SpaceSeparator)
+            return { };
+
+        auto tactics = WTF::map(valueList, [&](auto& item) {
+            return fromCSSValueID<PositionTryFallback::Tactic>(item.valueID());
+        });
+        return PositionTryFallback { .tactics = WTFMove(tactics) };
+    };
+
+    if (auto* primitiveValue = dynamicDowncast<CSSPrimitiveValue>(value)) {
+        switch (primitiveValue->valueID()) {
+        case CSSValueNone:
+            return { };
+        default:
+            ASSERT_NOT_REACHED();
+            return { };
+        }
+    }
+
+    auto* list = dynamicDowncast<CSSValueList>(value);
+    if (!list)
+        return { };
+
+    if (auto fallback = fallbackForValueList(*list))
+        return { *fallback };
+
+    return WTF::map(*list, [&](auto& item) {
+        auto* itemList = dynamicDowncast<CSSValueList>(item);
+        if (!itemList)
+            return PositionTryFallback { };
+        auto fallback = fallbackForValueList(*itemList);
+        return fallback ? *fallback : PositionTryFallback { };
+    });
 }
 
 } // namespace Style

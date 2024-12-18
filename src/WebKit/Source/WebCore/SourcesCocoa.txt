@@ -295,6 +295,7 @@ platform/cf/MainThreadSharedTimerCF.cpp
 platform/cf/MediaAccessibilitySoftLink.cpp
 platform/cf/RunLoopObserverCF.cpp
 platform/cf/SharedBufferCF.cpp
+platform/cocoa/AppleVisualEffect.cpp
 platform/cocoa/ContentFilterUnblockHandlerCocoa.mm @no-unify
 platform/cocoa/CoreLocationGeolocationProvider.mm
 platform/cocoa/CoreVideoSoftLink.cpp
@@ -556,6 +557,7 @@ platform/ios/PlatformEventFactoryIOS.mm @no-unify
 platform/ios/PlatformPasteboardIOS.mm
 platform/ios/PlatformScreenIOS.mm
 platform/ios/PlaybackSessionInterfaceAVKit.mm @no-unify
+platform/ios/PlaybackSessionInterfaceAVKitLegacy.mm @no-unify
 platform/ios/PlaybackSessionInterfaceIOS.mm @no-unify
 platform/ios/PlaybackSessionInterfaceTVOS.cpp
 platform/ios/PreviewConverterIOS.mm
@@ -571,6 +573,8 @@ platform/ios/UIFoundationSoftLink.mm
 platform/ios/UIViewControllerUtilities.mm
 platform/ios/UserAgentIOS.mm
 platform/ios/ValidationBubbleIOS.mm
+platform/ios/VideoPresentationInterfaceAVKit.mm @no-unify
+platform/ios/VideoPresentationInterfaceAVKitLegacy.mm @no-unify
 platform/ios/VideoPresentationInterfaceIOS.mm @no-unify
 platform/ios/VideoPresentationInterfaceTVOS.mm
 platform/ios/WebAVPlayerController.mm

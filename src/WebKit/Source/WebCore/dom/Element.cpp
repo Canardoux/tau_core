@@ -944,7 +944,7 @@ void Element::setFocus(bool value, FocusVisibility visibility)
     for (RefPtr element = this; element; element = element->parentElementInComposedTree())
         element->setHasFocusWithin(value);
 
-    setHasFocusVisible(value && (visibility == FocusVisibility::Visible || shouldAlwaysHaveFocusVisibleWhenFocused(*this)));
+    setHasFocusVisible(value && (visibility == FocusVisibility::Visible || (visibility == FocusVisibility::Invisible && shouldAlwaysHaveFocusVisibleWhenFocused(*this))));
 }
 
 void Element::setHasFocusVisible(bool value)
@@ -953,7 +953,6 @@ void Element::setHasFocusVisible(bool value)
 
 #if ASSERT_ENABLED
     ASSERT(!value || focused());
-    ASSERT(!focused() || !shouldAlwaysHaveFocusVisibleWhenFocused(*this) || value);
 #endif
 
     if (hasFocusVisible() == value)
@@ -3899,7 +3898,9 @@ void Element::focus(const FocusOptions& options)
             return;
 
         FocusOptions optionsWithVisibility = options;
-        if (options.trigger == FocusTrigger::Bindings && document->wasLastFocusByClick())
+        if (options.focusVisible)
+            optionsWithVisibility.visibility = *options.focusVisible ? FocusVisibility::Visible : FocusVisibility::ForceInvisible;
+        else if (options.trigger == FocusTrigger::Bindings && document->wasLastFocusByClick())
             optionsWithVisibility.visibility = FocusVisibility::Invisible;
         else if (options.trigger != FocusTrigger::Click)
             optionsWithVisibility.visibility = FocusVisibility::Visible;
@@ -4004,16 +4005,16 @@ void Element::dispatchFocusOutEventIfNeeded(RefPtr<Element>&& newFocusedElement)
 
 void Element::dispatchFocusEvent(RefPtr<Element>&& oldFocusedElement, const FocusOptions& options)
 {
-    if (RefPtr page = document().page())
-        page->chrome().client().elementDidFocus(*this, options);
     dispatchEvent(FocusEvent::create(eventNames().focusEvent, Event::CanBubble::No, Event::IsCancelable::No, document().windowProxy(), 0, WTFMove(oldFocusedElement)));
+    if (RefPtr page = document().page(); page && document().focusedElement() == this)
+        page->chrome().client().elementDidFocus(*this, options);
 }
 
 void Element::dispatchBlurEvent(RefPtr<Element>&& newFocusedElement)
 {
+    dispatchEvent(FocusEvent::create(eventNames().blurEvent, Event::CanBubble::No, Event::IsCancelable::No, document().windowProxy(), 0, WTFMove(newFocusedElement)));
     if (RefPtr page = document().page())
         page->chrome().client().elementDidBlur(*this);
-    dispatchEvent(FocusEvent::create(eventNames().blurEvent, Event::CanBubble::No, Event::IsCancelable::No, document().windowProxy(), 0, WTFMove(newFocusedElement)));
 }
 
 void Element::dispatchWebKitImageReadyEventForTesting()

@@ -439,7 +439,7 @@ Page::Page(PageConfiguration&& pageConfiguration)
     , m_writingToolsController(makeUniqueRef<WritingToolsController>(*this))
 #endif
     , m_activeNowPlayingSessionUpdateTimer(*this, &Page::activeNowPlayingSessionUpdateTimerFired)
-    , m_topDocumentSyncData(makeUniqueRef<DocumentSyncData>())
+    , m_topDocumentSyncData(DocumentSyncData::create())
 #if HAVE(AUDIT_TOKEN)
     , m_presentingApplicationAuditToken(WTFMove(pageConfiguration.presentingApplicationAuditToken))
 #endif
@@ -491,8 +491,10 @@ Page::Page(PageConfiguration&& pageConfiguration)
     if (m_lowPowerModeNotifier->isLowPowerModeEnabled())
         m_throttlingReasons.add(ThrottlingReason::LowPowerMode);
 
-    if (m_thermalMitigationNotifier->thermalMitigationEnabled())
+    if (m_thermalMitigationNotifier->thermalMitigationEnabled()) {
         m_throttlingReasons.add(ThrottlingReason::ThermalMitigation);
+        m_throttlingReasons.set(ThrottlingReason::AggressiveThermalMitigation, settings().respondToThermalPressureAggressively());
+    }
 }
 
 Page::~Page()
@@ -866,6 +868,14 @@ void Page::updateProcessSyncData(const ProcessSyncData& data)
         break;
 #endif
     }
+}
+
+void Page::updateTopDocumentSyncData(Ref<DocumentSyncData>&& data)
+{
+    // Pages should never get updates to top document sync data from another
+    // process if they directly host the main frame document.
+    RELEASE_ASSERT(!hasLocalMainFrame());
+    m_topDocumentSyncData = WTFMove(data);
 }
 
 void Page::setMainFrameURLFragment(String&& fragment)
@@ -1758,6 +1768,19 @@ void Page::setLowPowerModeEnabledOverrideForTesting(std::optional<bool> isEnable
     m_throttlingReasonsOverridenForTesting.add(ThrottlingReason::LowPowerMode);
 }
 
+void Page::setAggressiveThermalMitigationEnabledForTesting(std::optional<bool> isEnabled)
+{
+    m_throttlingReasonsOverridenForTesting.remove(ThrottlingReason::AggressiveThermalMitigation);
+
+    if (!isEnabled.has_value()) {
+        handleThermalMitigationChange(m_thermalMitigationNotifier->thermalMitigationEnabled());
+        return;
+    }
+
+    handleThermalMitigationChange(isEnabled.value());
+    m_throttlingReasonsOverridenForTesting.add(ThrottlingReason::AggressiveThermalMitigation);
+}
+
 void Page::setOutsideViewportThrottlingEnabledForTesting(bool isEnabled)
 {
     if (!isEnabled)
@@ -2537,6 +2560,15 @@ void Page::handleThermalMitigationChange(bool thermalMitigationEnabled)
         return;
 
     m_throttlingReasons.set(ThrottlingReason::ThermalMitigation, thermalMitigationEnabled);
+
+    if (settings().respondToThermalPressureAggressively()) {
+        m_throttlingReasons.set(ThrottlingReason::AggressiveThermalMitigation, thermalMitigationEnabled);
+        if (CheckedPtr scheduler = existingRenderingUpdateScheduler())
+            scheduler->adjustRenderingUpdateFrequency();
+        chrome().client().renderingUpdateFramesPerSecondChanged();
+    }
+
+    RELEASE_LOG(PerformanceLogging, "%p - Page::handleThermalMitigationChange: thermal mitigation %d, aggressive thermal mitigation %d", this, isThermalMitigationEnabled(), isAggressiveThermalMitigationEnabled());
 
     updateDOMTimerAlignmentInterval();
 }
@@ -4144,9 +4176,16 @@ void Page::enableICECandidateFiltering()
 #endif
 }
 
+bool Page::hasLocalMainFrame()
+{
+    return dynamicDowncast<LocalFrame>(mainFrame());
+}
+
 void Page::didChangeMainDocument(Document* newDocument)
 {
-    m_topDocumentSyncData = makeUniqueRef<DocumentSyncData>();
+    m_topDocumentSyncData = newDocument ? newDocument->syncData() : DocumentSyncData::create();
+
+    processSyncClient().broadcastTopDocumentSyncDataToOtherProcesses(m_topDocumentSyncData.get());
 
 #if ENABLE(WEB_RTC)
     m_rtcController->reset(m_shouldEnableICECandidateFilteringByDefault);

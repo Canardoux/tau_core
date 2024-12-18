@@ -524,7 +524,7 @@ private:
     std::optional<PDFDocumentLayout::PageIndex> pageIndexWithHoveredAnnotation() const;
     void paintHoveredAnnotationOnPage(PDFDocumentLayout::PageIndex, WebCore::GraphicsContext&, const WebCore::FloatRect& clipRect);
 
-    void followLinkAnnotation(PDFAnnotation *);
+    void followLinkAnnotation(PDFAnnotation *, std::optional<WebCore::PlatformMouseEvent>&& = std::nullopt);
 
     void startTrackingAnnotation(RetainPtr<PDFAnnotation>&&, WebEventType, WebMouseEventButton);
     void updateTrackedAnnotation(PDFAnnotation *annotationUnderMouse);
@@ -555,6 +555,7 @@ private:
 
     RetainPtr<PDFAnnotation> annotationForRootViewPoint(const WebCore::IntPoint&) const;
 
+    PDFElementTypes pdfElementTypesForPagePoint(const WebCore::IntPoint&, PDFPage *) const;
     PDFElementTypes pdfElementTypesForPluginPoint(const WebCore::IntPoint&) const;
 
     bool isTaggedPDF() const;
@@ -577,13 +578,19 @@ private:
 
     using PageAndPoint = std::pair<RetainPtr<PDFPage>, WebCore::FloatPoint>;
     PageAndPoint rootViewToPage(WebCore::FloatPoint) const;
+    WebCore::FloatRect pageToRootView(WebCore::FloatRect rectInPage, PDFPage *) const;
+    WebCore::FloatRect pageToRootView(WebCore::FloatRect rectInPage, std::optional<PDFDocumentLayout::PageIndex>) const;
 
 #if PLATFORM(IOS_FAMILY)
     void setSelectionRange(WebCore::FloatPoint pointInRootView, WebCore::TextGranularity) final;
     void clearSelection() final;
+    std::pair<URL, WebCore::FloatRect> linkURLAndBoundsAtPoint(WebCore::FloatPoint pointInRootView) const final;
+    std::optional<WebCore::FloatRect> highlightRectForTapAtPoint(WebCore::FloatPoint pointInRootView) const final;
+    void handleSyntheticClick(WebCore::PlatformMouseEvent&&) final;
     SelectionWasFlipped moveSelectionEndpoint(WebCore::FloatPoint pointInRootView, SelectionEndpoint) final;
     SelectionEndpoint extendInitialSelection(WebCore::FloatPoint pointInRootView, WebCore::TextGranularity) final;
     bool platformPopulateEditorStateIfNeeded(EditorState&) const final;
+    CursorContext cursorContext(WebCore::FloatPoint pointInRootView) const final;
 
 #if HAVE(PDFDOCUMENT_SELECTION_WITH_GRANULARITY)
     PDFSelection *selectionAtPoint(WebCore::FloatPoint pointInPage, PDFPage *, WebCore::TextGranularity) const;

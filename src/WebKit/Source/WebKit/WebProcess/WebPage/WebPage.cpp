@@ -1215,8 +1215,14 @@ void WebPage::frameWasRemovedInAnotherProcess(WebCore::FrameIdentifier frameID)
 
 void WebPage::processSyncDataChangedInAnotherProcess(const WebCore::ProcessSyncData& data)
 {
-    if (auto* page = corePage())
+    if (RefPtr page = corePage())
         page->updateProcessSyncData(data);
+}
+
+void WebPage::topDocumentSyncDataChangedInAnotherProcess(Ref<WebCore::DocumentSyncData>&& data)
+{
+    if (RefPtr page = corePage())
+        page->updateTopDocumentSyncData(WTFMove(data));
 }
 
 #if ENABLE(GPU_PROCESS)
@@ -7385,6 +7391,14 @@ void WebPage::elementDidFocus(Element& element, const FocusOptions& options)
         RefPtr<API::Object> userData;
 
         m_formClient->willBeginInputSession(this, &element, WebFrame::fromCoreFrame(*element.document().frame()).get(), m_userIsInteracting, userData);
+
+        if (!userData) {
+            auto userInfo = element.userInfo();
+            if (!userInfo.isNull()) {
+                if (auto data = JSON::Value::parseJSON(element.userInfo()))
+                    userData = userDataFromJSONData(*data);
+            }
+        }
 
         information->preventScroll = options.preventScroll;
         send(Messages::WebPageProxy::ElementDidFocus(information.value(), m_userIsInteracting, m_recentlyBlurredElement, m_lastActivityStateChanges, UserData(WebProcess::singleton().transformObjectsToHandles(userData.get()).get())));
